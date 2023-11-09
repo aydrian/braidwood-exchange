@@ -1,6 +1,7 @@
+import type { LinksFunction, LoaderFunction } from "@remix-run/node";
+
 import { ClerkApp, ClerkErrorBoundary } from "@clerk/remix";
 import { rootAuthLoader } from "@clerk/remix/ssr.server";
-import { type LoaderFunction } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -10,9 +11,17 @@ import {
   ScrollRestoration
 } from "@remix-run/react";
 
+import iconHref from "~/components/icons/sprite.svg";
+
 import "./tailwind.css";
 
 export const loader: LoaderFunction = (args) => rootAuthLoader(args);
+
+export const links: LinksFunction = () => {
+  return [
+    { as: "image", href: iconHref, rel: "preload", type: "image/svg+xml" }
+  ];
+};
 
 export const ErrorBoundary = ClerkErrorBoundary();
 
