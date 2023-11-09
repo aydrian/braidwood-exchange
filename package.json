@@ -3,6 +3,9 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "author": "Aydrian Howard <aydrian@gmail.com> (https://itsaydrian.com)",
+  "license": "MIT",
+  "repository": "github:aydrian/braidwood-exchange",
   "scripts": {
     "build": "vite build && vite build --ssr",
     "build:icons": "tsx ./build-icons.ts",

@@ -1,4 +1,4 @@
-# templates/unstable-vite
+# Braidwood Corgis Holiday Gift Exchange
 
 ⚠️ Remix support for Vite is unstable and not recommended for production.
 
@@ -26,3 +26,8 @@ npm run start
 ```
 
 [remix-vite-docs]: https://remix.run/docs/en/main/future/vite
+
+## 📝 License
+
+Copyright © 2023 [itsaydrian.com](https://itsaydrian.com/). <br />
+This project is [MIT](./LICENSE) licensed.
