@@ -4,6 +4,7 @@ import { getAuth } from "@clerk/remix/ssr.server";
 import { json, unstable_parseMultipartFormData } from "@remix-run/node";
 import { type FetcherWithComponents, useFetcher } from "@remix-run/react";
 import React, { useEffect, useId, useState } from "react";
+import { type Accept, useDropzone } from "react-dropzone-esm";
 import sharp from "sharp";
 
 import { Icon, type IconProps } from "~/components/icon";
@@ -17,7 +18,6 @@ const uploadHandler: UploadHandler = async ({
   filename,
   name
 }) => {
-  console.log({ contentType, filename, name });
   let chunks = [];
   for await (let chunk of data) {
     chunks.push(chunk);
@@ -49,33 +49,34 @@ export const action = async (args: DataFunctionArgs) => {
 
 type UploaderProps = {
   UploadIcon?: React.ReactElement<IconProps>;
+  accept?: Accept;
   className?: string;
   defaultValue?: string;
-  fileTypes?: string;
-  maxFileSize?: string;
-  multiple?: boolean;
+  maxFileSize?: number;
   name: string;
 };
 
 export function ImageUploader({
   UploadIcon = <Icon className="h-8 w-8" name="document-plus-outline" />,
+  accept = { "image/*": [".jpeg", ".png"] },
   className,
   defaultValue = "",
-  fileTypes = "image/*",
   maxFileSize,
-  multiple = false,
   name
 }: UploaderProps) {
   const fallbackId = useId();
   const id = name ?? fallbackId;
   const fetcher = useFetcherWithReset<typeof action>();
   const dataUri = fetcher.data?.dataUri || defaultValue;
-  const [draggingOver, setDraggingOver] = React.useState(false);
-
-  const preventDefaults = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+  const { getInputProps, getRootProps, isDragActive } = useDropzone({
+    accept,
+    maxSize: maxFileSize,
+    onDrop: async (acceptedFiles: File[]) => {
+      if (acceptedFiles.length > 0) {
+        handleFileUpload(acceptedFiles[0]);
+      }
+    }
+  });
 
   const handleFileUpload = (file: File) => {
     let inputFormData = new FormData();
@@ -87,40 +88,22 @@ export function ImageUploader({
     });
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    preventDefaults(e);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileUpload(e.dataTransfer.files[0]);
-      e.dataTransfer.clearData();
-    }
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.currentTarget.files && event.currentTarget.files[0]) {
-      handleFileUpload(event.currentTarget.files[0]);
-    }
-  };
-
   const handleClear = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     fetcher.reset();
   };
 
   return (
     <div
-      className={cn(
-        "border-rounded flex items-center justify-center rounded border-dashed p-1 transition duration-300 ease-in-out",
-        draggingOver
-          ? "border-4 border-yellow-300"
-          : "border-2 border-gray-400",
-        className
-      )}
-      onDrag={preventDefaults}
-      onDragEnd={preventDefaults}
-      onDragEnter={() => setDraggingOver(true)}
-      onDragLeave={() => setDraggingOver(false)}
-      onDragOver={preventDefaults}
-      onDragStart={preventDefaults}
-      onDrop={handleDrop}
+      {...getRootProps({
+        className: cn(
+          "border-rounded flex items-center justify-center rounded border-dashed p-1 transition duration-300 ease-in-out",
+          isDragActive
+            ? "border-4 border-yellow-300"
+            : "border-2 border-gray-400",
+          className
+        )
+      })}
     >
       {dataUri ? (
         <div className="relative">
@@ -150,14 +133,7 @@ export function ImageUploader({
           >
             Select image
           </Label>
-          <input
-            accept={fileTypes}
-            className="sr-only"
-            id={id}
-            multiple={multiple}
-            onChange={handleChange}
-            type="file"
-          />
+          <input {...getInputProps({ className: "sr-only", id })} />
           <p className="mt-4 text-center text-xs text-gray-600">
             Images will be resized to 512x512.
           </p>
