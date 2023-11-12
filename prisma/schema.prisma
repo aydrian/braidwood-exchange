@@ -9,3 +9,42 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+model MailingAddress {
+  userId   String  @id @map("user_id")
+  address1 String
+  address2 String?
+  city     String
+  state    String
+  zip      String
+  phone    String
+
+  @@map("mailing_address")
+}
+
+model Corgi {
+  id        String    @id @default(cuid())
+  name      String
+  birthDate DateTime? @map("birth_date")
+  imageUri  String    @map("image_uri")
+
+  ownerId    String  @map("owner_id")
+  entries    Entry[] @relation("Entries")
+  recipients Entry[] @relation("Recipients")
+
+  @@map("corgis")
+}
+
+model Entry {
+  corgiId String  @map("corgi_id")
+  year    String
+  notes   String?
+
+  corgi Corgi @relation("Entries", fields: [corgiId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  santaId String? @map("santa_id")
+  santa   Corgi?  @relation("Recipients", fields: [santaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([corgiId, year])
+  @@map("entries")
+}

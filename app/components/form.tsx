@@ -1,11 +1,19 @@
 import { useInputEvent } from "@conform-to/react";
-import { useId, useRef } from "react";
+import React, { useId, useRef } from "react";
 
 import { Button, type ButtonProps } from "~/components/ui/button";
 import { Checkbox, type CheckboxProps } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  type SelectProps,
+  SelectTrigger
+} from "./ui/select";
 
 export type ListOfErrors = Array<null | string | undefined> | null | undefined;
 
@@ -52,7 +60,7 @@ export function Field({
         id={id}
         {...inputProps}
       />
-      <div className="min-h-[32px] px-4 pb-3 pt-1">
+      <div className="min-h-[32px] px-4 py-1">
         {errorId ? <ErrorList errors={errors} id={errorId} /> : null}
       </div>
     </div>
@@ -82,7 +90,82 @@ export function TextareaField({
         id={id}
         {...textareaProps}
       />
-      <div className="min-h-[32px] px-4 pb-3 pt-1">
+      <div className="min-h-[32px] px-4 py-1">
+        {errorId ? <ErrorList errors={errors} id={errorId} /> : null}
+      </div>
+    </div>
+  );
+}
+
+export function SelectField({
+  buttonProps,
+  className,
+  errors,
+  labelProps,
+  options
+}: {
+  buttonProps: SelectProps;
+  className?: string;
+  errors?: ListOfErrors;
+  labelProps: React.LabelHTMLAttributes<HTMLLabelElement>;
+  options: { label: string; value: string }[];
+}) {
+  const [open, setOpen] = React.useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const control = useInputEvent({
+    onFocus: () => buttonRef.current?.focus(),
+    ref: () =>
+      buttonRef.current?.form?.elements.namedItem(buttonProps.name ?? "")
+  });
+  const fallbackId = useId();
+  const id = buttonProps.name ?? fallbackId;
+  const errorId = errors?.length ? `${id}-error` : undefined;
+  const { name, ...props } = buttonProps;
+
+  return (
+    <div className={className}>
+      <Label htmlFor={id} {...labelProps} />
+      <Select
+        defaultValue={
+          buttonProps.defaultValue
+            ? String(buttonProps.defaultValue)
+            : undefined
+        }
+        name={name}
+        onOpenChange={setOpen}
+        open={open}
+      >
+        <SelectTrigger
+          aria-describedby={errorId}
+          aria-invalid={errorId ? true : undefined}
+          id={id}
+          ref={buttonRef}
+          {...props}
+          onBlur={(event) => {
+            control.blur();
+            buttonProps.onBlur?.(event);
+          }}
+          onChange={(state) => {
+            control.change(state.currentTarget.value);
+            buttonProps.onChange?.(state);
+          }}
+          onFocus={(event) => {
+            control.focus();
+            buttonProps.onFocus?.(event);
+          }}
+          type="button"
+        >
+          {/* <SelectValue placeholder={labelProps.children} /> */}
+        </SelectTrigger>
+        <SelectContent>
+          {options.map(({ label, value }) => (
+            <SelectItem key={value} value={value}>
+              {label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <div className="px-4 py-1">
         {errorId ? <ErrorList errors={errors} id={errorId} /> : null}
       </div>
     </div>
@@ -142,7 +225,7 @@ export function CheckboxField({
           className="text-body-xs self-center text-muted-foreground"
         />
       </div>
-      <div className="px-4 pb-3 pt-1">
+      <div className="px-4 py-1">
         {errorId ? <ErrorList errors={errors} id={errorId} /> : null}
       </div>
     </div>

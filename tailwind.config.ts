@@ -64,6 +64,9 @@ export default {
           foreground: "hsl(var(--secondary-foreground))"
         }
       },
+      fontFamily: {
+        "mountains-of-christmas": ["'Mountains of Christmas'"]
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
