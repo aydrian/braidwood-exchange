@@ -35,16 +35,27 @@ model Corgi {
   @@map("corgis")
 }
 
-model Entry {
-  corgiId String  @map("corgi_id")
+model Exchange {
+  id      String  @id @default(cuid())
+  title   String
   year    String
-  notes   String?
+  isOpen  Boolean @default(true) @map("is_open")
+  entries Entry[]
+}
+
+model Entry {
+  exchangeId String  @map("exchange_id")
+  corgiId    String  @map("corgi_id")
+  year       String
+  notes      String?
+
+  exchange Exchange @relation(fields: [exchangeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   corgi Corgi @relation("Entries", fields: [corgiId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   santaId String? @map("santa_id")
   santa   Corgi?  @relation("Recipients", fields: [santaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@id([corgiId, year])
+  @@id([exchangeId, corgiId])
   @@map("entries")
 }

@@ -10,9 +10,11 @@ import { Textarea } from "~/components/ui/textarea";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   type SelectProps,
-  SelectTrigger
+  SelectTrigger,
+  SelectValue
 } from "./ui/select";
 
 export type ListOfErrors = Array<null | string | undefined> | null | undefined;
@@ -155,14 +157,16 @@ export function SelectField({
           }}
           type="button"
         >
-          {/* <SelectValue placeholder={labelProps.children} /> */}
+          <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {options.map(({ label, value }) => (
-            <SelectItem key={value} value={value}>
-              {label}
-            </SelectItem>
-          ))}
+          <SelectGroup className="max-h-[10rem] overflow-y-auto">
+            {options.map(({ label, value }) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
         </SelectContent>
       </Select>
       <div className="px-4 py-1">

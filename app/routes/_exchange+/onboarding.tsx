@@ -11,6 +11,8 @@ import {
   useForm
 } from "@conform-to/react";
 import { getFieldsetConstraint, parse } from "@conform-to/zod";
+import { createId } from "@paralleldrive/cuid2";
+import {} from "@prisma/client";
 import { json, redirect } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns";
@@ -41,7 +43,7 @@ const CorgiSchema = z.object({
         .max(new Date(), { message: "Date should be before today" })
         .optional()
     ),
-  id: z.string().optional(),
+  id: z.string().default(createId()),
   imageUri: z.string(),
   name: z.string({ required_error: "Corgi name is required" })
 });
@@ -95,10 +97,46 @@ export async function action(args: DataFunctionArgs) {
   }
 
   const { corgis, ...mailingAddress } = submission.value;
-
   console.log({ corgis, mailingAddress });
 
-  // TODO: upsert submission
+  const corgiIds = corgis
+    .map((corgi) => corgi.id ?? "")
+    .filter((id) => id.length > 0);
+
+  const mailingAddressUpsert = prisma.mailingAddress.upsert({
+    create: {
+      userId,
+      ...mailingAddress
+    },
+    update: {
+      ...mailingAddress
+    },
+    where: { userId }
+  });
+
+  const corgisDelete = prisma.corgi.deleteMany({
+    where: { AND: { id: { notIn: corgiIds }, ownerId: userId } }
+  });
+
+  const corgiUpserts = corgis.map((corgi) =>
+    prisma.corgi.upsert({
+      create: {
+        ...corgi,
+        ownerId: userId
+      },
+      update: {
+        ...corgi,
+        ownerId: userId
+      },
+      where: { id: corgi.id }
+    })
+  );
+
+  await prisma.$transaction([
+    mailingAddressUpsert,
+    corgisDelete,
+    ...corgiUpserts
+  ]);
 
   return redirect("/");
 }
@@ -323,6 +361,7 @@ function CorgiFieldset(config: FieldConfig<z.input<typeof CorgiSchema>>) {
           errors={birthDate.errors}
           inputProps={{
             ...conform.input(birthDate, { type: "date" }),
+            defaultValue: birthDate.defaultValue?.split("T")[0],
             max: format(new Date(), "yyyy-MM-dd")
           }}
           labelProps={{
