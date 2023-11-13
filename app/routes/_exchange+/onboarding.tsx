@@ -14,7 +14,7 @@ import { getFieldsetConstraint, parse } from "@conform-to/zod";
 import { createId } from "@paralleldrive/cuid2";
 import {} from "@prisma/client";
 import { json, redirect } from "@remix-run/node";
-import { useFetcher, useLoaderData } from "@remix-run/react";
+import { Link, useFetcher, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns";
 import { useRef } from "react";
 import z from "zod";
@@ -37,12 +37,7 @@ const CorgiSchema = z.object({
   birthDate: z
     .string()
     .transform((value) => (value ? new Date(value) : undefined))
-    .pipe(
-      z
-        .date()
-        .max(new Date(), { message: "Date should be before today" })
-        .optional()
-    ),
+    .pipe(z.date().max(new Date(), { message: "Date should be before today" })),
   id: z.string().default(createId()),
   imageUri: z.string(),
   name: z.string({ required_error: "Corgi name is required" })
@@ -331,7 +326,19 @@ export default function Onboarding() {
             </Button>
           </CardFooter>
         </Card>
-        <SubmitButton className="w-full sm:w-auto">Submit</SubmitButton>
+        <div className="flex flex-col items-center gap-2 md:flex-row">
+          <SubmitButton className="w-full sm:w-auto">Submit</SubmitButton>
+          {defaultMailingAddress && defaultCorgis.length > 0 ? (
+            <Button
+              asChild
+              className="w-full sm:w-auto"
+              size="sm"
+              variant="secondary"
+            >
+              <Link to="/">Cancel</Link>
+            </Button>
+          ) : null}
+        </div>
       </fetcher.Form>
     </div>
   );
@@ -342,7 +349,10 @@ function CorgiFieldset(config: FieldConfig<z.input<typeof CorgiSchema>>) {
   const { birthDate, id, imageUri, name } = useFieldset(ref, config);
 
   return (
-    <fieldset className="flex items-center gap-2" ref={ref}>
+    <fieldset
+      className="flex flex-col items-center gap-2 md:flex-row"
+      ref={ref}
+    >
       <input {...conform.input(id, { type: "hidden" })} />
       {/* <div className="h-40 w-40 rounded-md bg-gray-300"></div> */}
       <ImageUploader

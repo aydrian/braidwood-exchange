@@ -23,10 +23,10 @@ model MailingAddress {
 }
 
 model Corgi {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
-  birthDate DateTime? @map("birth_date")
-  imageUri  String    @map("image_uri")
+  birthDate DateTime @map("birth_date")
+  imageUri  String   @map("image_uri")
 
   ownerId    String  @map("owner_id")
   entries    Entry[] @relation("Entries")
@@ -36,26 +36,24 @@ model Corgi {
 }
 
 model Exchange {
-  id      String  @id @default(cuid())
+  id      String   @id @default(cuid())
   title   String
   year    String
-  isOpen  Boolean @default(true) @map("is_open")
+  dueDate DateTime @map("due_date")
+  isOpen  Boolean  @default(true) @map("is_open")
   entries Entry[]
 }
 
 model Entry {
-  exchangeId String  @map("exchange_id")
-  corgiId    String  @map("corgi_id")
-  year       String
-  notes      String?
+  exchangeId  String  @map("exchange_id")
+  santaId     String  @map("santa_id")
+  recipientId String? @map("recipient_id")
+  notes       String?
 
-  exchange Exchange @relation(fields: [exchangeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  exchange  Exchange @relation(fields: [exchangeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  santa     Corgi    @relation("Entries", fields: [santaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  recipient Corgi?   @relation("Recipients", fields: [recipientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  corgi Corgi @relation("Entries", fields: [corgiId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  santaId String? @map("santa_id")
-  santa   Corgi?  @relation("Recipients", fields: [santaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@id([exchangeId, corgiId])
+  @@id([exchangeId, santaId])
   @@map("entries")
 }

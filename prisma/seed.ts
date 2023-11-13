@@ -8,6 +8,7 @@ async function seed() {
   // const aydrianUserId = "user_2Xxvy2cWrKPa6UcvsngnemhdVfI";
   await prisma.exchange.create({
     data: {
+      dueDate: new Date(2023, 10, 24, 12),
       id: exchangeId,
       title: "Test Exchange",
       year: "2023"
