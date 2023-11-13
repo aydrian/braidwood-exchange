@@ -1,4 +1,8 @@
-import type { DataFunctionArgs, UploadHandler } from "@remix-run/node";
+import type {
+  DataFunctionArgs,
+  SerializeFrom,
+  UploadHandler
+} from "@remix-run/node";
 
 import { getAuth } from "@clerk/remix/ssr.server";
 import { json, unstable_parseMultipartFormData } from "@remix-run/node";
@@ -67,7 +71,6 @@ export function ImageUploader({
   const fallbackId = useId();
   const id = name ?? fallbackId;
   const fetcher = useFetcherWithReset<typeof action>();
-  // @ts-ignore
   const dataUri = fetcher.data?.dataUri || defaultValue;
 
   const { getInputProps, getRootProps, isDragActive } = useDropzone({
@@ -150,7 +153,9 @@ export type FetcherWithComponentsReset<T> = FetcherWithComponents<T> & {
   reset: () => void;
 };
 
-export function useFetcherWithReset<T>(): FetcherWithComponentsReset<T> {
+export function useFetcherWithReset<T>(): FetcherWithComponentsReset<
+  SerializeFrom<T>
+> {
   const fetcher = useFetcher<T>();
   const [data, setData] = useState(fetcher.data);
   useEffect(() => {
@@ -160,7 +165,7 @@ export function useFetcherWithReset<T>(): FetcherWithComponentsReset<T> {
   }, [fetcher.state, fetcher.data]);
   return {
     ...fetcher,
-    data: data as T,
+    data: data as SerializeFrom<T> | undefined,
     reset: () => setData(undefined)
   };
 }
