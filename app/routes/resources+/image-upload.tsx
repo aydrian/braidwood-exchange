@@ -67,7 +67,9 @@ export function ImageUploader({
   const fallbackId = useId();
   const id = name ?? fallbackId;
   const fetcher = useFetcherWithReset<typeof action>();
+  // @ts-ignore
   const dataUri = fetcher.data?.dataUri || defaultValue;
+
   const { getInputProps, getRootProps, isDragActive } = useDropzone({
     accept,
     maxSize: maxFileSize,
