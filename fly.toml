@@ -1,4 +1,4 @@
-app = "braidwood-exhange"
+app = "braidwood-exchange"
 primary_region = "ewr"
 
 [mounts]
