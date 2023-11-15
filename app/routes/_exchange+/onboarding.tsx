@@ -19,7 +19,13 @@ import { format } from "date-fns";
 import { useRef } from "react";
 import z from "zod";
 
-import { Field, SelectField, SubmitButton } from "~/components/form";
+import {
+  Field,
+  PhoneField,
+  SelectField,
+  SubmitButton,
+  conformPhoneInput
+} from "~/components/form";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -92,7 +98,6 @@ export async function action(args: DataFunctionArgs) {
   }
 
   const { corgis, ...mailingAddress } = submission.value;
-  console.log({ corgis, mailingAddress });
 
   const corgiIds = corgis
     .map((corgi) => corgi.id ?? "")
@@ -273,9 +278,9 @@ export default function Onboarding() {
                 }}
               />
             </div>
-            <Field
+            <PhoneField
               errors={phone.errors}
-              inputProps={conform.input(phone, { type: "tel" })}
+              inputProps={conformPhoneInput(phone)}
               labelProps={{
                 children: "Phone",
                 htmlFor: phone.id

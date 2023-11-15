@@ -1,5 +1,10 @@
-import { useInputEvent } from "@conform-to/react";
+import { type FieldConfig, conform, useInputEvent } from "@conform-to/react";
 import React, { useId, useRef } from "react";
+import {
+  type InputAttributes,
+  PatternFormat,
+  type PatternFormatProps
+} from "react-number-format";
 
 import { Button, type ButtonProps } from "~/components/ui/button";
 import { Checkbox, type CheckboxProps } from "~/components/ui/checkbox";
@@ -60,6 +65,53 @@ export function Field({
         aria-describedby={errorId}
         aria-invalid={errorId ? true : undefined}
         id={id}
+        {...inputProps}
+      />
+      <div className="min-h-[32px] px-4 py-1">
+        {errorId ? <ErrorList errors={errors} id={errorId} /> : null}
+      </div>
+    </div>
+  );
+}
+
+export function conformPhoneInput(
+  config: FieldConfig<string>,
+  options?: PatternFormatProps<InputAttributes>
+): PatternFormatProps<InputAttributes> {
+  const { type, ...inputProps } = conform.input(config);
+  return {
+    format: options?.format ?? "+1 (###) ###-####",
+    type: "tel",
+    ...inputProps
+  };
+}
+
+export function PhoneField({
+  className,
+  errors,
+  inputProps,
+  labelProps
+}: {
+  className?: string;
+  errors?: ListOfErrors;
+  format?: string;
+  inputProps: PatternFormatProps<InputAttributes>;
+  labelProps: React.LabelHTMLAttributes<HTMLLabelElement>;
+}) {
+  const fallbackId = useId();
+  const id = inputProps.id ?? fallbackId;
+  const errorId = errors?.length ? `${id}-error` : undefined;
+
+  return (
+    <div className={className}>
+      <Label htmlFor={id} {...labelProps} />
+      <PatternFormat
+        allowEmptyFormatting
+        aria-describedby={errorId}
+        aria-invalid={errorId ? true : undefined}
+        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        id={id}
+        mask="_"
         {...inputProps}
       />
       <div className="min-h-[32px] px-4 py-1">
