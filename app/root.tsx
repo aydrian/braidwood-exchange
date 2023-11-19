@@ -1,11 +1,11 @@
-import type {
-  LinksFunction,
-  LoaderFunction,
-  MetaFunction
-} from "@remix-run/node";
-
 import { ClerkApp, ClerkErrorBoundary } from "@clerk/remix";
 import { rootAuthLoader } from "@clerk/remix/ssr.server";
+import {
+  type LinksFunction,
+  type LoaderFunction,
+  type MetaFunction,
+  json
+} from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -15,11 +15,24 @@ import {
   ScrollRestoration
 } from "@remix-run/react";
 
+import { ClientHints } from "~/components/client-hints";
 import iconHref from "~/components/icons/sprite.svg";
+import { getHints } from "~/hooks/use-hints";
 
 import "./tailwind.css";
+import { getDomainUrl } from "./utils/misc.server";
 
-export const loader: LoaderFunction = (args) => rootAuthLoader(args);
+export const loader: LoaderFunction = (args) => {
+  return rootAuthLoader(args, ({ request }) => {
+    return json({
+      requestInfo: {
+        hints: getHints(request),
+        origin: getDomainUrl(request),
+        path: new URL(request.url).pathname
+      }
+    } as const);
+  });
+};
 
 export const meta: MetaFunction = () => [
   { charset: "utf-8" },
@@ -43,6 +56,7 @@ function App() {
       <head>
         <meta charSet="utf-8" />
         <meta content="width=device-width, initial-scale=1" name="viewport" />
+        <ClientHints />
         <Meta />
         <Links />
       </head>

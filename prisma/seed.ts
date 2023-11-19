@@ -5,27 +5,41 @@ async function seed() {
   console.time(`🌱 Database has been seeded`);
 
   const exchangeId = "clovnj486000008l87l3cc81j";
-  // const aydrianUserId = "user_2Xxvy2cWrKPa6UcvsngnemhdVfI";
-  await prisma.exchange.create({
-    data: {
-      dueDate: new Date(2023, 10, 24, 12),
-      id: exchangeId,
-      title: "Test Exchange",
-      year: "2023"
-    }
-  });
+  const exchangeOldId = "clovnj486000008l87l3cc";
+  const exchangeNewId = "clovnj486000008l87l";
+  await prisma.exchange
+    .create({
+      data: {
+        dueDate: new Date(2023, 10, 24, 12),
+        id: exchangeId,
+        title: "Test Exchange",
+        year: "2023"
+      }
+    })
+    .catch((e) => console.error(e));
 
-  // await prisma.mailingAddress.create({
-  //   data: {
-  //     address1: "111 W 70th St",
-  //     address2: "Apt 1F",
-  //     city: "New York",
-  //     phone: "317-306-1715",
-  //     state: "NY",
-  //     userId: aydrianUserId,
-  //     zip: "10023"
-  //   }
-  // });
+  await prisma.exchange
+    .create({
+      data: {
+        dueDate: new Date(2022, 10, 25, 12),
+        id: exchangeOldId,
+        isOpen: false,
+        title: "Braidwood Corgis",
+        year: "2022"
+      }
+    })
+    .catch((e) => console.error(e));
+
+  await prisma.exchange
+    .create({
+      data: {
+        dueDate: new Date(2023, 12, 1, 12),
+        id: exchangeNewId,
+        title: "Braidwood Corgis",
+        year: "2023"
+      }
+    })
+    .catch((e) => console.error(e));
 
   console.timeEnd(`🌱 Database has been seeded`);
 }

@@ -1,26 +1,33 @@
 import { getAuth } from "@clerk/remix/ssr.server";
-import { type LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { type LoaderFunctionArgs, json, redirect } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
-import { format } from "date-fns";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import giftCorgi from "~/images/gift-corgi.png";
 import { prisma } from "~/utils/db.server";
 
+import { useProfileData } from "./_layout";
+
 export async function loader(args: LoaderFunctionArgs) {
   const { userId } = await getAuth(args);
   if (!userId) {
     return redirect("/sign-in");
   }
-  const [mailingAddress, corgis] = await Promise.all([
-    prisma.mailingAddress.findUnique({
-      where: { userId }
-    }),
-    prisma.corgi.findMany({ where: { ownerId: userId } })
-  ]);
+  await prisma.user
+    .findUniqueOrThrow({
+      select: { id: true },
+      where: { id: userId }
+    })
+    .catch(() => redirect("/onboarding"));
 
-  const corgiIds = corgis.map((corgi) => corgi.id);
+  const corgiIds = await prisma.corgi
+    .findMany({
+      select: { id: true },
+      where: { ownerId: userId }
+    })
+    .then((corgis) => corgis.map(({ id }) => id));
+
   const entries = await prisma.entry.findMany({
     select: {
       exchange: true,
@@ -31,22 +38,19 @@ export async function loader(args: LoaderFunctionArgs) {
     where: { santaId: { in: corgiIds } }
   });
 
-  if (!mailingAddress || corgis.length < 1) {
-    return redirect("/onboarding");
-  }
-
-  return { corgis, entries, mailingAddress };
+  return json({ entries });
 }
 
 export default function Index() {
-  const { corgis, entries, mailingAddress } = useLoaderData<typeof loader>();
+  const { entries } = useLoaderData<typeof loader>();
+  const { corgis, mailingAddress } = useProfileData();
   return (
     <>
       <div className="flex flex-col gap-4 rounded-md bg-white p-6 shadow-md">
         <div className="flex justify-between">
           <h2 className="text-3xl font-semibold">Your Profile</h2>
           <Button asChild>
-            <Link to="/onboarding">Edit</Link>
+            <Link to="/profile/edit">Edit</Link>
           </Button>
         </div>
         <div className="flex flex-col justify-evenly gap-4 md:flex-row">
@@ -55,16 +59,22 @@ export default function Index() {
               <CardTitle>Mailing Address</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>
-                {mailingAddress.address1}
-                <br />
-                {mailingAddress.address2}
-                <br />
-                {mailingAddress.city}, {mailingAddress.state}{" "}
-                {mailingAddress.zip}
-                <br />
-                {mailingAddress.phone}
-              </p>
+              {mailingAddress ? (
+                <p>
+                  {mailingAddress.address1}
+                  <br />
+                  {mailingAddress.address2 ? (
+                    <>
+                      {mailingAddress.address2}
+                      <br />
+                    </>
+                  ) : null}
+                  {mailingAddress.city}, {mailingAddress.state}{" "}
+                  {mailingAddress.zip}
+                  <br />
+                  {mailingAddress.phone}
+                </p>
+              ) : null}
             </CardContent>
           </Card>
           <Card className="grow">
@@ -96,7 +106,12 @@ export default function Index() {
                     </h4>
                     <p className="text-center text-sm">
                       <span className="font-medium">Birthdate: </span>
-                      {format(new Date(corgi.birthDate), "MM/dd/yyyy")}
+                      {new Date(corgi.birthDate).toLocaleDateString(undefined, {
+                        day: "numeric",
+                        month: "2-digit",
+                        timeZone: "UTC",
+                        year: "numeric"
+                      })}
                       <br />
                       <span className="text-xs">
                         ({corgi.age?.years} years {corgi.age?.months} months)
@@ -110,15 +125,23 @@ export default function Index() {
         </div>
       </div>
       <div className="mt-4 flex flex-col gap-4 rounded-md bg-white p-6 shadow-md">
-        <h2 className="text-3xl font-semibold">Gift Exchange</h2>
+        <div className="flex justify-between">
+          <h2 className="text-3xl font-semibold">Gift Exchange</h2>
+          {/* <Button asChild>
+            <Link to="/exchanges/current">Join</Link>
+          </Button> */}
+        </div>
         {entries.length > 0 ? (
           <div>TODO</div>
         ) : (
-          <div className="mx-auto flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-1">
             <img alt="corgi with gift" className="h-36 w-36" src={giftCorgi} />
             <h3 className="text-center">
               You're not currently participateing in any gift exchanges.
             </h3>
+            {/* <Button asChild>
+              <Link to="/exchanges/current">Join a Gift Exchange</Link>
+            </Button> */}
           </div>
         )}
       </div>

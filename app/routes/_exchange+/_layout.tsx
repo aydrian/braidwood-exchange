@@ -1,8 +1,38 @@
 import { UserButton } from "@clerk/remix";
-import { Outlet } from "@remix-run/react";
+import { getAuth } from "@clerk/remix/ssr.server";
+import { type DataFunctionArgs, json, redirect } from "@remix-run/node";
+import { Outlet, useRouteLoaderData } from "@remix-run/react";
 
 import { Icon } from "~/components/icon";
 import corgiSanta from "~/images/santa-corgi.png";
+import { prisma } from "~/utils/db.server";
+
+export async function loader(args: DataFunctionArgs) {
+  const { userId } = await getAuth(args);
+  if (!userId) {
+    return redirect("/sign-in");
+  }
+  const [mailingAddress, corgis] = await Promise.all([
+    prisma.mailingAddress.findUnique({
+      where: { userId }
+    }),
+    prisma.corgi.findMany({ where: { ownerId: userId } })
+  ]);
+
+  return json({ corgis, mailingAddress });
+}
+
+export function useProfileData() {
+  const data = useRouteLoaderData<typeof loader>("routes/_exchange+/_layout");
+
+  if (data === undefined) {
+    throw new Error(
+      "useProfileData must be used within the _exchange+/_layout route or its children"
+    );
+  }
+
+  return data;
+}
 
 export default function Layout() {
   return (

@@ -10,6 +10,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String @id
+  email     String @default("")
+  firstName String @default("Corgi Parent") @map("first_name")
+  lastName  String @default("") @map("last_name")
+
+  mailingAddress MailingAddress[]
+  corgis         Corgi[]
+
+  @@map("users")
+}
+
 model MailingAddress {
   userId   String  @id @map("user_id")
   address1 String
@@ -19,6 +31,8 @@ model MailingAddress {
   zip      String
   phone    String
 
+  user User @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
   @@map("mailing_address")
 }
 
@@ -27,8 +41,9 @@ model Corgi {
   name      String
   birthDate DateTime @map("birth_date")
   imageUri  String   @map("image_uri")
+  ownerId   String   @map("owner_id")
 
-  ownerId    String  @map("owner_id")
+  owner      User    @relation(fields: [ownerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   entries    Entry[] @relation("Entries")
   recipients Entry[] @relation("Recipients")
 
