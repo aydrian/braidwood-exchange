@@ -61,6 +61,7 @@ export async function action(args: DataFunctionArgs) {
   if (!userId) {
     return redirect("/sign-in");
   }
+  console.log({ user });
   const { request } = args;
   const formData = await request.formData();
   const submission = parse(formData, {
@@ -179,7 +180,7 @@ export default function ProfileEditor({
         <CardHeader>
           <CardTitle>Mailing Address</CardTitle>
           <CardDescription>
-            Please provide an address to where you'd like your secret santapaws
+            Please provide an address to where you'd like your secret santa paws
             to deliver gifts.
           </CardDescription>
         </CardHeader>
@@ -330,7 +331,11 @@ export default function ProfileEditor({
         </CardFooter>
       </Card>
       <div className="flex flex-col items-center gap-2 md:flex-row">
-        <SubmitButton className="w-full sm:w-auto">Submit</SubmitButton>
+        <SubmitButton className="w-full sm:w-auto">
+          {defaultMailingAddress && defaultCorgis.length > 0
+            ? "Submit"
+            : "Continue"}
+        </SubmitButton>
         {defaultMailingAddress && defaultCorgis.length > 0 ? (
           <Button
             asChild

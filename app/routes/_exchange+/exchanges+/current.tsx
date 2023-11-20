@@ -31,7 +31,6 @@ export async function loader(args: LoaderFunctionArgs) {
 
 export default function ExchangesCurrent() {
   const { exchanges, timeZone } = useLoaderData<typeof loader>();
-  console.log({ timeZone });
   return (
     <>
       <div className="flex flex-col gap-4 rounded-md bg-white p-6 shadow-md">

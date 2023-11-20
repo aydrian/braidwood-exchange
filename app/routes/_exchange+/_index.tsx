@@ -19,7 +19,9 @@ export async function loader(args: LoaderFunctionArgs) {
       select: { id: true },
       where: { id: userId }
     })
-    .catch(() => redirect("/onboarding"));
+    .catch(() => {
+      throw redirect("/onboarding");
+    });
 
   const corgiIds = await prisma.corgi
     .findMany({
@@ -44,6 +46,7 @@ export async function loader(args: LoaderFunctionArgs) {
 export default function Index() {
   const { entries } = useLoaderData<typeof loader>();
   const { corgis, mailingAddress } = useProfileData();
+  console.log({ entries });
   return (
     <>
       <div className="flex flex-col gap-4 rounded-md bg-white p-6 shadow-md">
